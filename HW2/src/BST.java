@@ -1,5 +1,8 @@
-import java.util.Collection;
 import java.util.List;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Queue;
 
 /**
  * Your implementation of a BST.
@@ -87,6 +90,30 @@ public class BST<T extends Comparable<? super T>> {
         if (data == null)   {
             throw new IllegalArgumentException("Cannot add null data to a BST");
         }
+
+        this.root = addH(this.root, data);
+    }
+
+    /**
+     * Helper method for pointer reinforcement based implementation of add()
+     * @param cur Node currently being reinforced
+     * @param data Data to add
+     * @return reinforced Node
+     */
+    private BSTNode<T> addH(BSTNode<T> cur, T data)   {
+        if (cur == null)    {
+            this.size++;
+            return new BSTNode<T>(data);
+        }
+        int compareResult = data.compareTo(cur.getData());
+
+        if (compareResult > 0)  {
+            cur.setRight(addH(cur.getRight(), data));
+        } else if (compareResult < 0)  {
+            cur.setLeft(addH(cur.getLeft(), data));
+        }
+        // case compareResult == 0 omitted because we want to ignore duplicates
+        return cur;
     }
 
     /**
@@ -117,7 +144,77 @@ public class BST<T extends Comparable<? super T>> {
      * @throws java.util.NoSuchElementException   if the data is not in the tree
      */
     public T remove(T data) {
+        if (data == null)   {
+            throw new java.lang.IllegalArgumentException("Cannot remove null data from BST");
+        }
+        BSTNode<T> dummy = new BSTNode<T>(null);
 
+        this.root = removeH(this.root, data, dummy);
+
+        this.size--;
+        return dummy.getData();
+    }
+
+
+    /**
+     * Helper method for recursive implementation of remove()
+     * @param curNode Current Node being pointer reinforced
+     * @param data Data to check for
+     * @param dummy Reference to dummy variable eventually storing removed data
+     * @return reference to curNode
+     */
+    private BSTNode<T> removeH(BSTNode<T> curNode, T data, BSTNode<T> dummy)   {
+        if (curNode == null)    {
+            throw new java.util.NoSuchElementException("Data to remove does not exist");
+        }
+
+        int compareResult = data.compareTo(curNode.getData());
+        if (compareResult > 0)  {
+            curNode.setRight(removeH(curNode.getRight(), data, dummy));
+        } else if (compareResult < 0) {
+            curNode.setLeft(removeH(curNode.getLeft(), data, dummy));
+        } else {
+            dummy.setData(curNode.getData());
+
+            int children = countChildren(curNode);
+            if (children == 0)  {
+                return null;
+            } else if (children == 1)   {
+                return (curNode.getLeft() == null) ? curNode.getRight() : curNode.getLeft();
+            } else {
+                BSTNode<T> predecessorDummy = new BSTNode<T>(null);
+                curNode.setLeft(removePredecessor(curNode.getLeft(), predecessorDummy));
+
+                curNode.setData(predecessorDummy.getData());
+                return curNode;
+            }
+        }
+        return curNode;
+    }
+
+    /**
+     * Helper method for pointer-reinforcement based implementation of remove()
+     * @param curNode Node currently being recursed on
+     * @param dummy Dummy node to store value of predecessor
+     * @return Reinforced Node
+     */
+    private BSTNode<T> removePredecessor(BSTNode<T> curNode, BSTNode<T> dummy)  {
+        if (curNode.getRight() == null)  {
+            dummy.setData(curNode.getData());
+            return curNode.getLeft();
+        } else {
+            curNode.setRight(removePredecessor(curNode.getRight(), dummy));
+        }
+        return curNode;
+    }
+
+    /**
+     * Returns the number of children a Node has
+     * @param node Node to check
+     * @return Number of children
+     */
+    private int countChildren(BSTNode<T> node)  {
+        return (node.getLeft() == null ? 0 : 1) + (node.getRight() == null ? 0 : 1);
     }
 
     /**
@@ -138,7 +235,32 @@ public class BST<T extends Comparable<? super T>> {
      * @throws java.util.NoSuchElementException   if the data is not in the tree
      */
     public T get(T data) {
+        if (data == null)   {
+            throw new java.lang.IllegalArgumentException("Cannot call get() with null data");
+        }
+        return getH(this.root, data);
+    }
 
+    /**
+     * Helper method for recursive implementation of get()
+     * @param curNode node currently recursing on
+     * @param data the data to search for
+     * @return Data found in the matching node
+     */
+    private T getH(BSTNode<T> curNode, T data)  {
+        if (curNode == null)    {
+            throw new java.util.NoSuchElementException("Data could not be found");
+        }
+
+        int compareResult = data.compareTo(curNode.getData());
+
+        if (compareResult > 0) {
+            return getH(curNode.getRight(), data);
+        } else if (compareResult < 0)   {
+            return getH(curNode.getLeft(), data);
+        } else {
+            return curNode.getData();
+        }
     }
 
     /**
@@ -157,7 +279,31 @@ public class BST<T extends Comparable<? super T>> {
      * @throws java.lang.IllegalArgumentException if data is null
      */
     public boolean contains(T data) {
+        if (data == null)   {
+            throw new java.lang.IllegalArgumentException("Cannot call contains() onn null data");
+        }
+        return containsH(this.root, data);
+    }
 
+    /**
+     * Helper method for recursive implementation of contains()
+     * @param curNode The node currently being recursed on
+     * @param data The data to search for
+     * @return True if data found, False if not
+     */
+    private boolean containsH(BSTNode<T> curNode, T data)  {
+        if (curNode == null)    {
+            return false;
+        }
+
+        int compareResult = data.compareTo(curNode.getData());
+        if (compareResult > 0)  {
+            return containsH(curNode.getRight(), data);
+        } else if (compareResult < 0)   {
+            return containsH(curNode.getLeft(), data);
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -170,7 +316,22 @@ public class BST<T extends Comparable<? super T>> {
      * @return the preorder traversal of the tree
      */
     public List<T> preorder() {
+        ArrayList<T> traversalList = new ArrayList<T>(this.size);
+        preorderH(this.root, traversalList);
+        return traversalList;
+    }
 
+    /**
+     * Helper method for recursive implementation of preorder()
+     * @param curNode Node currently recursing on
+     * @param traversalList List to add data to
+     */
+    private void preorderH(BSTNode<T> curNode, ArrayList<T> traversalList) {
+        if (curNode != null)    {
+            traversalList.add(curNode.getData());
+            preorderH(curNode.getLeft(), traversalList);
+            preorderH(curNode.getRight(), traversalList);
+        }
     }
 
     /**
@@ -183,7 +344,22 @@ public class BST<T extends Comparable<? super T>> {
      * @return the inorder traversal of the tree
      */
     public List<T> inorder() {
+        ArrayList<T> traversal = new ArrayList<T>(this.size);
+        inorderH(this.root, traversal);
+        return traversal;
+    }
 
+    /**
+     * Helper method for recursive implementation of inorder()
+     * @param curNode Node currently recursing on
+     * @param traversal List to add data to
+     */
+    private void inorderH(BSTNode<T> curNode, ArrayList<T> traversal) {
+        if (curNode != null)    {
+            inorderH(curNode.getLeft(), traversal);
+            traversal.add(curNode.getData());
+            inorderH(curNode.getRight(), traversal);
+        }
     }
 
     /**
@@ -196,7 +372,22 @@ public class BST<T extends Comparable<? super T>> {
      * @return the postorder traversal of the tree
      */
     public List<T> postorder() {
+        ArrayList<T> traversal = new ArrayList<T>(this.size);
+        postorderH(this.root, traversal);
+        return traversal;
+    }
 
+    /**
+     * Helper method for recursive implementation of postorder()
+     * @param curNode Node currently being recursed on
+     * @param traversal List storing order of traversal
+     */
+    private void postorderH(BSTNode<T> curNode, ArrayList<T> traversal) {
+        if (curNode != null)    {
+            postorderH(curNode.getLeft(), traversal);
+            postorderH(curNode.getRight(), traversal);
+            traversal.add(curNode.getData());
+        }
     }
 
     /**
@@ -213,7 +404,25 @@ public class BST<T extends Comparable<? super T>> {
      * @return the level order traversal of the tree
      */
     public List<T> levelorder() {
+        ArrayList<T> traversal = new ArrayList<T>(this.size);
+        Queue<BSTNode<T>> levelQueue = new LinkedList<BSTNode<T>>();
+        if (this.root != null)  {
+            levelQueue.add(this.root);
+        }
 
+        while (levelQueue.size() > 0)   {
+            BSTNode<T> cur = levelQueue.remove();
+            traversal.add(cur.getData());
+
+            if (cur.getLeft() != null)   {
+                levelQueue.add(cur.getLeft());
+            }
+            if (cur.getRight() != null) {
+                levelQueue.add(cur.getRight());
+            }
+        }
+
+        return traversal;
     }
 
     /**
@@ -229,7 +438,20 @@ public class BST<T extends Comparable<? super T>> {
      * @return the height of the root of the tree, -1 if the tree is empty
      */
     public int height() {
+        return heightH(this.root);
+    }
 
+    /**
+     * Helper method for recursive implementation of height()
+     * @param curNode Node currently being recursed on
+     * @return Current height - 1
+     */
+    private int heightH(BSTNode<T> curNode)   {
+        if (curNode == null)    {
+            return -1;
+        } else {
+            return Math.max(heightH(curNode.getLeft()), heightH(curNode.getRight())) + 1;
+        }
     }
 
     /**
@@ -240,7 +462,8 @@ public class BST<T extends Comparable<? super T>> {
      * Must be O(1).
      */
     public void clear() {
-
+        this.root = null;
+        this.size = 0;
     }
 
     /**
