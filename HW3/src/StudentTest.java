@@ -8,6 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 
 /**
  * This is a basic set of unit tests for MaxHeap.
@@ -249,6 +250,19 @@ public class StudentTest {
         pq.add(4);
         pq.add(3);
         
+        assertEquals((Integer) 4, MaxHeapChallenge.kthLargestPeek(pq, 2));
+        assertEquals(3, pq.size());
+    }
+
+    @Test(timeout = TIMEOUT)
+    public void testKthLargestPeekMax() {
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        pq.add(5);
+        pq.add(4);
+        pq.add(3);
+        pq.add(2);
+        pq.add(1);
+
         assertEquals((Integer) 4, MaxHeapChallenge.kthLargestPeek(pq, 2));
         assertEquals(3, pq.size());
     }

@@ -73,7 +73,7 @@ public class MaxHeap<T extends Comparable<? super T>> {
             throw new java.lang.IllegalArgumentException("Cannot construct MaxHeap with null data");
         }
 
-        this.backingArray = (T[]) new Object[data.size() * 2 + 1];
+        this.backingArray = (T[]) new Comparable[data.size() * 2 + 1];
         this.size = data.size();
 
         for (int i = 0; i < data.size(); i++)  {
@@ -135,7 +135,7 @@ public class MaxHeap<T extends Comparable<? super T>> {
 
         // check if resize needed
         if (this.backingArray.length <= this.size + 1)   { // add 1 because of 1-indexing
-            T[] newBackingArray = (T[]) new Object[this.backingArray.length * 2];
+            T[] newBackingArray = (T[]) new Comparable[this.backingArray.length * 2];
             for (int i = 1; i <= this.size; i++)  {
                 newBackingArray[i] = this.backingArray[i];
             }
@@ -211,7 +211,7 @@ public class MaxHeap<T extends Comparable<? super T>> {
      * resets the size.
      */
     public void clear() {
-        this.backingArray = (T[]) new Object[INITIAL_CAPACITY];
+        this.backingArray = (T[]) new Comparable[INITIAL_CAPACITY];
         this.size = 0;
     }
 
