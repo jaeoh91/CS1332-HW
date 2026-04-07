@@ -43,6 +43,8 @@ public class ArrayList<T> {
         this.size = 0;
     }
 
+
+
     /**
      * Adds the element to the specified index.
      *
