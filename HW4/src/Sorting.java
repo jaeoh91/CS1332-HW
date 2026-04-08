@@ -9,10 +9,10 @@ import java.util.Random;
  * a different implementation for a sort will receive no credit even
  * if it passes comparison checks.
  *
- * @author YOUR NAME HERE
+ * @author Jaesang Oh
  * @version 1.0
- * @userid YOUR USER ID HERE (i.e. gburdell3)
- * @GTID YOUR GT ID HERE (i.e. 900000000)
+ * @userid joh426
+ * @GTID 904170848
  *
  * Collaborators: LIST ALL COLLABORATORS YOU WORKED WITH HERE
  *
@@ -22,7 +22,7 @@ import java.util.Random;
  * own work and that you are responsible for all the contents of 
  * this file. If this is left blank, you will lose points.
  * 
- * Agree Here: REPLACE THIS TEXT
+ * Agree Here: I agree
  */
 public class Sorting {
 
@@ -56,9 +56,69 @@ public class Sorting {
      *                                            null
      */
     public static <T> void mergeSort(T[] arr, Comparator<T> comparator) {
+        if (arr == null || comparator == null)  {
+            throw new IllegalArgumentException("array and comparator cannot be null");
+        }
 
+        // Check recursion base case: array has 1 or 0 elements
+        if (arr.length <= 1)    {
+            return;
+        }
+
+        int length = arr.length;
+        int middleIndex = length / 2;
+
+        // allocate bounds such that extra data ends up on right side if odd # of elements
+        // arr[0:middleIndex)
+        T[] leftArray = (T[]) new Object[middleIndex];
+        // arr[middleIndex:length)
+        T[] rightArray = (T[]) new Object[length - middleIndex];
+
+        for (int i = 0; i < middleIndex; i++)   {
+            leftArray[i] = arr[i];
+        }
+        for (int i = middleIndex; i < length; i++)  {
+            rightArray[i - middleIndex] = arr[i];
+        }
+
+        // divide
+        mergeSort(leftArray, comparator);
+        mergeSort(rightArray, comparator);
+
+        // time to conquer / merge
+        int leftArrayIndex = 0; // tracks where we are on leftArray
+        int rightArrayIndex = 0; // tracks where we are on rightArray
+        int mainArrayIndex = 0; // // tracks where we are on arr
+
+        while (leftArrayIndex < leftArray.length && rightArrayIndex < rightArray.length)  {
+            T leftElement = leftArray[leftArrayIndex];
+            T rightElement = rightArray[rightArrayIndex];
+
+            // '<= 0' here ensures stable mergesort
+            if (comparator.compare(leftElement, rightElement) <= 0)   {
+                arr[mainArrayIndex] = leftElement;
+                leftArrayIndex++;
+            } else {
+                arr[mainArrayIndex] = rightElement;
+                rightArrayIndex++;
+            }
+            mainArrayIndex++;
+        }
+
+        // clean up stragglers
+        // either leftArray or rightArray will have at least one element not added
+        // bc one of them will have 'depleted first' in the above while loop
+        while (leftArrayIndex < leftArray.length)   {
+            arr[mainArrayIndex] = leftArray[leftArrayIndex];
+            leftArrayIndex++;
+            mainArrayIndex++;
+        }
+        while (rightArrayIndex < rightArray.length) {
+            arr[mainArrayIndex] = rightArray[rightArrayIndex];
+            rightArrayIndex++;
+            mainArrayIndex++;
+        }
     }
-
     /**
      * Implement kth select.
      *
@@ -107,7 +167,22 @@ public class Sorting {
      */
     public static <T> T kthSelect(int k, T[] arr, Comparator<T> comparator,
                                     Random rand) {
-                                    
+        if (arr == null || comparator == null)   {
+            throw new IllegalArgumentException("kthSelect requires a non-null array and comparator");
+        }
+        if (k < 1 || k > arr.length)    {
+            throw new IllegalArgumentException("k must be in [1, arr.length]");
+        }
+
+
+
+
+        return null;
+    }
+
+    private static <T> void kthSelectH(int k, int left, int right, T[] arr,
+                                       Comparator<T> comparator, Random rand) {
+        int pivotIndex = left + rand.nextInt(left, right);
     }
 
     /**
@@ -152,6 +227,6 @@ public class Sorting {
      * @throws IllegalArgumentException if the array is null
      */
     public static void lsdRadixSort(int[] arr) {
-
+        return;
     }
 }
