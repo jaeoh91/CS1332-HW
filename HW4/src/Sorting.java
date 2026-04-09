@@ -1,4 +1,5 @@
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.Random;
 
 /**
@@ -167,22 +168,77 @@ public class Sorting {
      */
     public static <T> T kthSelect(int k, T[] arr, Comparator<T> comparator,
                                     Random rand) {
-        if (arr == null || comparator == null)   {
-            throw new IllegalArgumentException("kthSelect requires a non-null array and comparator");
+        if (arr == null || comparator == null || rand == null)   {
+            throw new IllegalArgumentException("kthSelect requires a non-null array, comparator, and null");
         }
         if (k < 1 || k > arr.length)    {
             throw new IllegalArgumentException("k must be in [1, arr.length]");
         }
 
-
-
-
-        return null;
+        return kthSelectH(k, 0, arr.length - 1, arr, comparator, rand);
     }
 
-    private static <T> void kthSelectH(int k, int left, int right, T[] arr,
+
+    /**
+     * Helper function for recursive implementation of kthSelect.
+     * @param k the index to retrieve data from, uses 1-indexing
+     * @param left inclusive lower bound for the current array section to operate on
+     * @param right inclusive upper bound for the current array section
+     * @param arr The array to perform kth select on
+     * @param comparator Comparator used to compare data in arr
+     * @param rand Random object used to generate random numbers for pivot
+     * @param <T> Data type in arr
+     * @return kth smallest value
+     */
+    private static <T> T kthSelectH(int k, int left, int right, T[] arr,
                                        Comparator<T> comparator, Random rand) {
-        int pivotIndex = left + rand.nextInt(left, right);
+        // use formula for exclusive end bound
+        int pivotIndex = left + rand.nextInt(right - left + 1);
+        T dataAtPivot = arr[pivotIndex];
+        swap(arr, left, pivotIndex);
+
+        int i = left + 1;
+        int j = right;
+        while (j >= i) {
+            while (j >= i && comparator.compare(arr[i], dataAtPivot) <= 0) {
+                i++;
+            }
+
+            while (j >= i && comparator.compare(arr[j], dataAtPivot) >= 0)  {
+                j--;
+            }
+
+            if (j >= i) {
+                swap(arr, i, j);
+                i++;
+                j--;
+            }
+        }
+
+        // this moves pivot to correct position
+        swap(arr, left, j);
+
+        // check if we've found the k-th smallest element yet
+        if (j == k - 1) {
+            return arr[j];
+        } else if (j > k - 1)   { // left
+            return kthSelectH(k, left, j - 1, arr, comparator, rand);
+        } else { // right
+            return kthSelectH(k, j + 1, right, arr, comparator, rand);
+        }
+    }
+
+    /**
+     * Private helper method to swap two entries in an array.
+     * @param arr The Array to modify
+     * @param i Index #1
+     * @param j Index #2
+     * @param <T> Data type in arr
+     */
+    private static <T> void swap(T[] arr, int i, int j) {
+        T tempData = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tempData;
     }
 
     /**
@@ -227,6 +283,83 @@ public class Sorting {
      * @throws IllegalArgumentException if the array is null
      */
     public static void lsdRadixSort(int[] arr) {
-        return;
+        if (arr == null)    {
+            throw new IllegalArgumentException("Cannot perform lsdRadixSort on null array");
+        }
+
+        // edge case empty array / only 1 element
+        if (arr.length <= 1)    {
+            return;
+        }
+
+        // go by magnitude / abs value because negative numbers can exist
+        int maxMagnitude = 0;
+        int k = 0;
+
+        for (int i = 0; i < arr.length; i++)    {
+            // handle overflow w/ Math.abs()
+            // prob bc of twos compliment signing, bound is [2^n, 2^n)
+            // Math.abs() can't represent -1 * Integer.MIN_VALUE
+            // -2,147,483,648 btw
+            if (arr[i] == Integer.MIN_VALUE)    {
+                k = 10; // max magnitude / magnitude of Integer.MIN_VALUE
+                break;
+            }
+
+            int curMagnitude = Math.abs(arr[i]);
+            if (curMagnitude > maxMagnitude)   {
+                maxMagnitude = curMagnitude;
+            }
+        }
+
+        k = (k != 10) ? countDigits(maxMagnitude) : 10;
+
+        // 19 buckets for [-9,9]
+        LinkedList<Integer>[] buckets = new LinkedList[19];
+        for (int i = 0; i < 19; i++)    {
+            buckets[i] = new LinkedList<>();
+        }
+
+        long curBase = 1; // to avoid potential overflow if k is maxed out
+        for (int i = 0; i < k; i++)    {
+            for (int j = 0; j < arr.length; j++)    {
+                int curNum = arr[j];
+                int bucketIndex = (int) (curNum / curBase % 10); // -> [-9, 9]
+                buckets[bucketIndex + 9].addLast(curNum); // -> [0, 18]
+                // note addLast and removeFront preserves stability
+                // we use the LinkedList like a queue
+            }
+
+            // dequeue all
+            int curIndex = 0;
+            for (int curBucket = 0; curBucket < 19; curBucket++)    {
+                while (!buckets[curBucket].isEmpty())    {
+                    arr[curIndex] = buckets[curBucket].removeFirst();
+                    curIndex++;
+                }
+            }
+
+            curBase *= 10;
+        }
+    }
+
+    /**
+     * Counts the number of digits in a number.
+     * Time complexity of k, where k is the number of digits in n
+     * @param n Number to check
+     * @return The number of digits in n
+     */
+    private static int countDigits(int n)  {
+        // special case n = 0
+        if (n == 0) {
+            return 1;
+        }
+
+        int count = 0;
+        while (n != 0)   {
+            n = n / 10;
+            count++;
+        }
+        return count;
     }
 }
